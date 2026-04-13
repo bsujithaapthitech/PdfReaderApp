@@ -7,7 +7,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pdfreaderapp.databinding.ActivityMainBinding
 import com.github.barteksc.pdfviewer.PDFView
-
+import android.net.Uri
+import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.text.PDFTextStripper
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 class MainActivity : AppCompatActivity() {
 
     // ViewBinding instance
@@ -19,6 +22,9 @@ class MainActivity : AppCompatActivity() {
     // Stores last opened page (basic state handling)
     private var lastPage = 0
 
+
+    private var selectedPdfUri: Uri? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -26,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
+        PDFBoxResourceLoader.init(applicationContext)
 
         // Initialize PDFView from layout
         pdfView = binding.pdfView
@@ -33,6 +40,11 @@ class MainActivity : AppCompatActivity() {
         // Button to pick PDF from device storage
         binding.btnOpen.setOnClickListener {
             openPdfFromStorage()
+        }
+        binding.btnExtract.setOnClickListener {
+            selectedPdfUri?.let {
+                extractTextFromPdf(it)
+            } ?: Toast.makeText(this, "Select PDF first", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -57,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             // Safely get selected file URI
             val uri = data?.data ?: return
 
+            selectedPdfUri = uri
             // Update app title with file name
             title = uri.lastPathSegment
 
@@ -82,6 +95,25 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "Failed to open PDF", Toast.LENGTH_SHORT).show()
                 }
                 .load()
+        }
+    }
+
+    private fun extractTextFromPdf(uri: Uri) {
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val document = PDDocument.load(inputStream)
+
+            val stripper = PDFTextStripper()
+            val text = stripper.getText(document)
+
+            binding.txtExtracted.text = text
+
+            document.close()
+            inputStream?.close()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Error extracting text", Toast.LENGTH_SHORT).show()
         }
     }
 }

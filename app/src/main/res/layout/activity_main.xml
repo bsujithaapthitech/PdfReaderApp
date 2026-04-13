@@ -23,6 +23,14 @@
         android:layout_marginTop="8dp"
         android:text="Open PDF"/>
 
+    <!-- ✅ NEW: Extract Text Button -->
+    <Button
+        android:id="@+id/btnExtract"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Extract Text"
+        android:layout_marginTop="6dp"/>
+
     <!-- Page Indicator -->
     <TextView
         android:id="@+id/txtPage"
@@ -40,5 +48,19 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="8dp"/>
+
+    <!-- ✅ NEW: Extracted Text View -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/txtExtracted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Extracted text will appear here"
+            android:textSize="12sp"/>
+    </ScrollView>
 
 </LinearLayout>
