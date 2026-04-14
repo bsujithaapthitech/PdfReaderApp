@@ -19,6 +19,9 @@ class MainActivity : AppCompatActivity() {
     // PDF viewer instance
     private lateinit var pdfView: PDFView
 
+
+
+
     // Stores last opened page (basic state handling)
     private var lastPage = 0
 
