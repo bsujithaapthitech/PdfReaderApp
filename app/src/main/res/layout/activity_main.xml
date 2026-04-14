@@ -1,66 +1,285 @@
-<LinearLayout
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@color/slate_50"
+    tools:context=".MainActivity">
 
-    <!-- App Title -->
+    <!-- Header Section -->
+    <View
+        android:id="@+id/headerBg"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:background="@color/primary"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <TextView
-        android:layout_width="match_parent"
+        android:id="@+id/txtAppTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="PDF Reader"
-        android:textSize="22sp"
+        android:text="IntelliSummarize PDF"
+        android:textColor="@color/white"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:gravity="center"
-        android:padding="8dp"/>
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="24dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
-    <!-- Open PDF Button -->
-    <Button
-        android:id="@+id/btnOpen"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Open PDF"/>
-
-    <!-- ✅ NEW: Extract Text Button -->
-    <Button
-        android:id="@+id/btnExtract"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Extract Text"
-        android:layout_marginTop="6dp"/>
-
-    <!-- Page Indicator -->
     <TextView
         android:id="@+id/txtPage"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Page 1 / 1"
-        android:gravity="center"
+        android:text="No PDF selected"
+        android:textColor="#CCFFFFFF"
         android:textSize="14sp"
-        android:padding="6dp"/>
+        app:layout_constraintTop_toBottomOf="@id/txtAppTitle"
+        app:layout_constraintStart_toStartOf="@id/txtAppTitle"/>
 
-    <!-- PDF Viewer -->
-    <com.github.barteksc.pdfviewer.PDFView
-        android:id="@+id/pdfView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="8dp"/>
+    <!-- Action Buttons Row -->
+    <LinearLayout
+        android:id="@+id/layoutActions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="-30dp"
+        app:layout_constraintTop_toBottomOf="@id/headerBg"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- ✅ NEW: Extracted Text View -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_marginTop="8dp">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpen"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Open PDF"
+            app:cornerRadius="16dp"
+            app:icon="@android:drawable/ic_menu_search"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSummarize"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Summarize AI"
+            android:backgroundTint="@color/accent"
+            app:cornerRadius="16dp"
+            app:icon="@android:drawable/stat_notify_chat"/>
+    </LinearLayout>
+
+    <!-- Pagination Controls -->
+    <LinearLayout
+        android:id="@+id/layoutNav"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingVertical="8dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/layoutActions"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrev"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Prev"
+            app:icon="@android:drawable/ic_media_previous"/>
 
         <TextView
-            android:id="@+id/txtExtracted"
+            android:id="@+id/txtPageIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:text="Page 1 of 1"
+            android:textColor="@color/slate_700"
+            android:textStyle="bold"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNext"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Next"
+            app:icon="@android:drawable/ic_media_next"
+            app:iconGravity="end"/>
+    </LinearLayout>
+
+    <!-- Native PDF Viewer (ImageView in ScrollView) -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/pdfContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@id/layoutNav"
+        app:layout_constraintBottom_toTopOf="@id/cardSummary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/imgPdfPage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Extracted text will appear here"
-            android:textSize="12sp"/>
-    </ScrollView>
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"/>
+    </androidx.core.widget.NestedScrollView>
 
-</LinearLayout>
+    <!-- NEW: Q&A Input Section -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardQA"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="#E2E8F0"
+        app:layout_constraintBottom_toTopOf="@id/cardSummary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/etQuestion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="Ask anything about this PDF..."
+                android:padding="12dp"
+                android:textSize="14sp"
+                android:textColor="@color/slate_900"
+                android:textColorHint="@color/slate_500"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAsk"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:icon="@android:drawable/ic_menu_send"
+                app:iconTint="@color/primary"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Summary Section (Hidden initially or showing placeholder) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSummary"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:strokeWidth="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:background="@color/white">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AI Summary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/slate_900"/>
+            
+            <View
+                android:layout_width="40dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="4dp"
+                android:background="@color/accent"/>
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="12dp">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Summary Loading Indicator (Integrated) -->
+                    <LinearLayout
+                        android:id="@+id/layoutSummaryLoading"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:visibility="gone">
+                        
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/summaryProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:indeterminate="true"
+                            app:trackThickness="2dp"
+                            app:trackCornerRadius="4dp"
+                            app:indicatorColor="@color/primary"/>
+
+                        <TextView
+                            android:id="@+id/txtSummaryStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="AI is analyzing..."
+                            android:textSize="12sp"
+                            android:textColor="@color/slate_500"
+                            android:textStyle="italic"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/txtSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Select a PDF and tap Summarize to get AI-powered insights."
+                        android:textColor="@color/slate_500"
+                        android:lineSpacingExtra="4sp"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Q&A Thinking Overlay (Small/Local) -->
+    <ProgressBar
+        android:id="@+id/qaProgress"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/cardQA"
+        app:layout_constraintBottom_toBottomOf="@id/cardQA"
+        app:layout_constraintEnd_toEndOf="@id/cardQA"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
