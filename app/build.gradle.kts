@@ -42,6 +42,7 @@ dependencies {
 
     implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

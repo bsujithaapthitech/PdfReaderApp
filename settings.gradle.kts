@@ -16,8 +16,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven("https://jitpack.io") // MUST
-
+        maven(url = "https://jitpack.io") // ✅ REQUIRED
     }
 }
 
