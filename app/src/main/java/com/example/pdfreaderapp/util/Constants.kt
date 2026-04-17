@@ -11,7 +11,7 @@ object Constants {
     const val ERROR_RATE_LIMIT = "RATE_LIMIT_REACHED"
     
     // Chunking Constraints
-    const val TARGET_CHUNK_SIZE = 8000          // Increased from 1800 to prevent too many calls
+    const val TARGET_CHUNK_SIZE = 12000         // Increased from 8000 to better handle massive docs
     const val CHUNK_OVERLAP = 200               // Maintains cross-chunk context
     const val MAX_CHUNKS = 150                  // Hard cap to prevent runaway calls
     const val STABILITY_THRESHOLD_CHARS = 100   // Fallback indicator
@@ -25,6 +25,6 @@ object Constants {
     const val BATCH_DELAY_MS = 2000L            // Increased from 1s to 2s
     const val RATE_LIMIT_BACKOFF_MS = 240_000L
 
-    // Hard global timeout — any document, any size, guaranteed ≤7 minutes total
-    const val HARD_TIMEOUT_MS = 420_000L        // 7 minutes = 420 seconds
+    // Hard global timeout — any document, any size, guaranteed ≤15 minutes total
+    const val HARD_TIMEOUT_MS = 900_000L        // 15 minutes = 900 seconds
 }
