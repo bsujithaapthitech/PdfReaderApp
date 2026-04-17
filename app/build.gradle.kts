@@ -45,8 +45,12 @@ android {
 
 dependencies {
 
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+  //  implementation("com.github.barteksc:android-pdf-viewer:2.8.2")
+    //implementation("com.github.barteksc:android-pdf-viewer:3.1.0-beta.1")
 
+    implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
