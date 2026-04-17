@@ -1,7 +1,9 @@
 package com.example.pdfreaderapp.util
 
+import com.example.pdfreaderapp.BuildConfig
+
 object Constants {
-    const val OPENROUTER_API_KEY = "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"
+    val OPENROUTER_API_KEY = BuildConfig.OPENROUTER_API_KEY
     const val OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/"
     const val DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
     const val FALLBACK_MODEL = "google/gemma-4-26b-a4b:free"
