@@ -27,13 +27,15 @@ class SummarizePdfUseCase(
     }
 
     // Staged scanning messages — total ~30s (leaves ~6 min for API calls within 7 min hard cap)
+    // Staged scanning messages to keep the user engaged
     private val scanStages = listOf(
-        "📄 Reading document structure..." to 5_000L,
-        "🔍 Deep scanning page content..." to 6_000L,
-        "🧠 Extracting key entities and facts..." to 6_000L,
-        "📊 Mapping semantic relationships..." to 6_000L,
-        "🔗 Identifying core themes..." to 4_000L,
-        "⚙️ Building AI context layers..." to 5_000L,
+        "🤖 Waking up our AI assistant..." to 4_000L,
+        "📄 Working on it — Reading PDF structure..." to 5_000L,
+        "🔍 Extracting text and context layers..." to 6_000L,
+        "🧠 Analyzing content for key insights..." to 6_000L,
+        "🧐 Deep scanning for facts and data..." to 5_000L,
+        "📊 Organizing information into sections..." to 5_000L,
+        "✨ Finalizing your AI summary..." to 4_000L,
     )
 
     /** Waits [waitSeconds] emitting a countdown via [onProgress], then returns. */

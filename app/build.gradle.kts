@@ -62,6 +62,7 @@ android {
 dependencies {
 
     implementation("androidx.activity:activity-ktx:1.9.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.fragment:fragment-ktx:1.8.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")

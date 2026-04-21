@@ -3,20 +3,34 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
-    <!-- Premium Palette -->
-    <color name="primary">#6366F1</color>
-    <color name="primary_dark">#4F46E5</color>
-    <color name="primary_light">#818CF8</color>
-    <color name="accent">#F43F5E</color>
+    <!-- Premium Palette (Dark Theme Focused) -->
+    <color name="primary">#818CF8</color> <!-- Indigo 400 -->
+    <color name="primary_dark">#4F46E5</color> <!-- Indigo 600 -->
+    <color name="primary_light">#C7D2FE</color> <!-- Indigo 200 -->
+    <color name="accent">#F43F5E</color> <!-- Rose 500 -->
+    
+    <!-- Surface Colors -->
+    <color name="bg_dark">#0F172A</color> <!-- Slate 900 -->
+    <color name="surface_dark">#1E293B</color> <!-- Slate 800 -->
+    <color name="slate_500">#64748B</color>
+    <color name="slate_400">#94A3B8</color>
+    <color name="slate_300">#CBD5E1</color>
+    <color name="text_primary">#F8FAFC</color> <!-- Slate 50 -->
+    <color name="text_secondary">#94A3B8</color> <!-- Slate 400 -->
     
     <color name="slate_50">#F8FAFC</color>
-    <color name="slate_100">#F1F5F9</color>
-    <color name="slate_200">#E2E8F0</color>
-    <color name="slate_500">#64748B</color>
     <color name="slate_700">#334155</color>
     <color name="slate_800">#1E293B</color>
     <color name="slate_900">#0F172A</color>
     
-    <color name="glass_bg">#BFFFFFFF</color>
-    <color name="loading_overlay">#AA000000</color>
+    <color name="glass_bg">#1AFFFFFF</color>
+    <color name="loading_overlay">#CC0F172A</color>
+
+    <!-- Gold / Amber accent -->
+    <color name="gold">#F59E0B</color>
+    <color name="gold_dark">#D97706</color>
+    <color name="icon_bg">#1A818CF8</color>
+    <color name="icon_bg_gold">#1AF59E0B</color>
+    <color name="icon_bg_cyan">#1A06B6D4</color>
+    <color name="cyan">#06B6D4</color>
 </resources>

@@ -12,18 +12,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:extractNativeLibs="false"
-        android:theme="@style/Theme.PdfReaderApp">
-        <activity android:name=".PdfReaderActivity"/>
-        <activity android:name=".SummaryActivity"/>
+        android:theme="@style/Theme.IntelliSumazzarixe">
         <activity
-            android:name=".HomeScreenActivity"
-            android:exported="true">
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".OnboardingActivity" />
+        <activity android:name=".HomeScreenActivity" />
+        <activity android:name=".PdfReaderActivity" />
+        <activity 
+            android:name=".SummaryActivity"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

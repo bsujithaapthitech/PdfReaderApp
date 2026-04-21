@@ -1,83 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="@color/bg_dark"
+    android:fitsSystemWindows="true"
+    android:paddingTop="32dp">
 
-    <!-- TOP BAR -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/topBar"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#4F46E5"
-        android:title="AI Summary"
-        android:titleTextColor="@android:color/white"
-        android:navigationIcon="@android:drawable/ic_media_previous"/>
+        android:layout_height="wrap_content"
+        android:background="@color/bg_dark">
 
-    <!-- CONTENT -->
-    <ScrollView
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_back"
+            app:title="AI Summary"
+            app:titleTextColor="@color/text_primary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
-            android:orientation="vertical"
+        <TextView
+            android:id="@+id/tvCacheLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/rounded_surface"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:text="Loaded from cache"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerChat"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
+            android:clipToPadding="false"
+            android:padding="16dp"
+            app:layout_constraintBottom_toTopOf="@+id/inputContainer"
+            app:layout_constraintTop_toBottomOf="@+id/tvCacheLabel" />
 
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/progressBar"
-                android:layout_width="match_parent"
-                android:layout_height="4dp"
-                android:visibility="gone"/>
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/tvLoadingStatus"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/recyclerChat"
+            app:layout_constraintVertical_chainStyle="packed" />
 
-            <!-- SUMMARY -->
+        <TextView
+            android:id="@+id/tvLoadingStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Working on it..."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.02"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/recyclerChat"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/progressBar" />
 
-            <com.google.android.material.card.MaterialCardView
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/inputContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardBackgroundColor="@color/surface_dark"
+            app:cardCornerRadius="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                android:backgroundTint="@android:color/white">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp">
 
-                <TextView
-                    android:id="@+id/tvSummary"
-                    android:layout_width="match_parent"
+                <EditText
+                    android:id="@+id/etQuestion"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:textSize="14sp"/>
-            </com.google.android.material.card.MaterialCardView>
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Ask anything..."
+                    android:minHeight="48dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="14sp" />
 
-            <!-- QUESTION -->
-            <EditText
-                android:id="@+id/etQuestion"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Ask about this PDF..."
-                android:layout_marginTop="16dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAsk"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:icon="@drawable/ic_send"
+                    app:iconTint="@color/primary" />
 
-            <!-- BUTTON -->
-            <Button
-                android:id="@+id/btnAsk"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ask"
-                android:layout_marginTop="8dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <!-- ANSWER -->
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerChat"
-                android:layout_width="match_parent"
-                android:layout_height="350dp"
-                android:layout_marginTop="12dp"
-                android:scrollbars="vertical"
-                android:overScrollMode="never"/>
-
-        </LinearLayout>
-    </ScrollView>
-
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
