@@ -31,9 +31,6 @@
                 android:id="@+id/progressBar"
                 android:layout_width="match_parent"
                 android:layout_height="4dp"
-                android:indeterminate="false"
-                android:max="100"
-                android:progress="0"
                 android:visibility="gone"/>
 
             <!-- SUMMARY -->
@@ -42,67 +39,43 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="6dp"
-                app:strokeColor="#E5E7EB"
-                app:strokeWidth="1dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
                 android:backgroundTint="@android:color/white">
-
-
 
                 <TextView
                     android:id="@+id/tvSummary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
-                    android:text="Upload a PDF to generate AI summary 📄"
-                    android:textSize="14sp"
-                    android:textColor="#0F172A"
-                    android:lineSpacingExtra="4dp"/>
-
+                    android:textSize="14sp"/>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- QUESTION -->
-
-            <com.google.android.material.textfield.TextInputLayout
+            <EditText
+                android:id="@+id/etQuestion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etQuestion"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Ask about this PDF..."/>
-            </com.google.android.material.textfield.TextInputLayout>
+                android:hint="Ask about this PDF..."
+                android:layout_marginTop="16dp"/>
 
             <!-- BUTTON -->
-            <com.google.android.material.button.MaterialButton
+            <Button
                 android:id="@+id/btnAsk"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="Ask AI"
-                android:layout_marginTop="8dp"
-                app:cornerRadius="12dp"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ask"
+                android:layout_marginTop="8dp"/>
 
             <!-- ANSWER -->
 
-            <com.google.android.material.card.MaterialCardView
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerChat"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="350dp"
                 android:layout_marginTop="12dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                android:backgroundTint="#EEF2FF">
-
-                <TextView
-                    android:id="@+id/tvAnswer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:textColor="#1E3A8A"
-                    android:textSize="14sp"/>
-            </com.google.android.material.card.MaterialCardView>
+                android:scrollbars="vertical"
+                android:overScrollMode="never"/>
 
         </LinearLayout>
     </ScrollView>

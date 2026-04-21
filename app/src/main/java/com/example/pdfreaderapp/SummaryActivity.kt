@@ -5,10 +5,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.pdfreaderapp.create.ChatAdapter
 import com.example.pdfreaderapp.data.api.NetworkModule
+import com.example.pdfreaderapp.data.local.dao.PdfDao
+import com.example.pdfreaderapp.data.local.database.AppDatabase
+import com.example.pdfreaderapp.data.local.entity.QaEntity
+import com.example.pdfreaderapp.data.local.entity.SummaryEntity
 import com.example.pdfreaderapp.data.pdf.PdfTextExtractor
 import com.example.pdfreaderapp.data.repository.SummaryRepository
 import com.example.pdfreaderapp.databinding.ActivitySummaryBinding
@@ -16,26 +21,38 @@ import com.example.pdfreaderapp.domain.model.QaState
 import com.example.pdfreaderapp.domain.usecase.AskPdfUseCase
 import com.example.pdfreaderapp.domain.usecase.SummarizePdfUseCase
 import com.example.pdfreaderapp.domain.util.TextChunker
+import com.example.pdfreaderapp.model.ChatItem
 import com.example.pdfreaderapp.ui.viewmodel.SummaryViewModel
 import com.example.pdfreaderapp.ui.viewmodel.SummaryViewModelFactory
+import kotlinx.coroutines.launch
+import androidx.recyclerview.widget.LinearLayoutManager
 
 class SummaryActivity : AppCompatActivity() {
 
-    // ViewBinding instance for accessing UI components
+    // Stores last asked question to ensure correct mapping with response
+    private var lastQuestion: String = ""
+
+    // Adapter and list for chat UI
+    private lateinit var chatAdapter: ChatAdapter
+    private val chatList = mutableListOf<ChatItem>()
+
+    // Room database and DAO
+    private lateinit var db: AppDatabase
+    private lateinit var dao: PdfDao
+
+    // ViewBinding for UI access
     private lateinit var binding: ActivitySummaryBinding
 
-    // Holds the selected PDF URI received from previous screen
+    // Holds selected PDF URI
     private var selectedPdfUri: Uri? = null
 
-    // Single handler used for all UI animations and delayed tasks
-    // Centralizing this avoids multiple handler leaks and race conditions
+    // Handler for animations and delayed tasks
     private val handler = Handler(Looper.getMainLooper())
 
-    // Flag to control loading state and animation lifecycle
+    // Loading state flag
     private var isLoading = false
 
-    // ViewModel initialization using factory pattern
-    // Injects dependencies required for summary and Q&A features
+    // ViewModel initialization with required dependencies
     private val viewModel: SummaryViewModel by viewModels {
         val extractor = PdfTextExtractor(this)
         val repository = SummaryRepository(NetworkModule.openRouterApi)
@@ -47,32 +64,47 @@ class SummaryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Initialize binding
         binding = ActivitySummaryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Retrieve URI passed from PdfReaderActivity
+        // Setup RecyclerView for chat messages
+        chatAdapter = ChatAdapter(chatList)
+        binding.recyclerChat.adapter = chatAdapter
+        binding.recyclerChat.layoutManager = LinearLayoutManager(this)
+
+        // Initialize database and DAO
+        db = AppDatabase.getDatabase(this)
+        dao = db.pdfDao()
+
+        // Retrieve PDF URI from intent
         val uriString = intent.getStringExtra("pdfUri")
-
-        android.util.Log.d("SUMMARY_DEBUG", "Received URI: $uriString")
-
-        // Parse and store URI
         selectedPdfUri = uriString?.let { Uri.parse(it) }
 
-        // Handle toolbar back navigation
+        // Load previously saved Q&A from database
+        lifecycleScope.launch {
+            val uri = selectedPdfUri?.toString() ?: return@launch
+            val qaList = dao.getQaList(uri)
+
+            qaList.forEach {
+                chatList.add(ChatItem(it.question, true))
+                chatList.add(ChatItem(it.answer, false))
+            }
+
+            chatAdapter.notifyDataSetChanged()
+            binding.recyclerChat.scrollToPosition(chatList.size - 1)
+        }
+
+        // Back navigation
         binding.topBar.setNavigationOnClickListener { finish() }
 
-        // Setup observers for summary and Q&A responses
+        // Initialize observers, summary and Q&A features
         setupObservers()
-
-        // Trigger summary generation immediately
         startSummary()
-
-        // Setup Ask (Q&A) functionality
         setupAsk()
     }
 
-    // Timeout runnable to prevent infinite loading
-    // Acts as fallback when API does not respond
+    // Timeout fallback if API takes too long
     private val timeoutRunnable = Runnable {
         if (isLoading) {
             stopLoading()
@@ -80,78 +112,120 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    // Starts summary generation process
+    // Starts summary generation or loads from local DB
     private fun startSummary() {
 
-        // Validate URI before proceeding
-        if (selectedPdfUri == null || selectedPdfUri.toString() == "null") {
+        if (selectedPdfUri == null) {
             binding.tvSummary.text = "No PDF received"
             return
         }
 
         val uri = selectedPdfUri!!
-        isLoading = true
 
-        // Reset UI state
-        binding.tvSummary.text = ""
-        binding.progressBar.visibility = View.VISIBLE
-        binding.progressBar.progress = 0
+        lifecycleScope.launch {
 
-        // Start loading animations
-        startAnalyzingAnimation()
-        simulateProgress()
-        startDotsAnimation()
+            val localSummary = dao.getSummary(uri.toString())
 
-        // Start timeout safeguard (10 seconds)
-        handler.postDelayed(timeoutRunnable, 10000)
+            // If summary exists locally, display it without API call
+            if (localSummary != null) {
+                binding.tvSummary.append("\n\n(Loaded from offline)")
+                stopLoading()
+                binding.tvSummary.text = ""
+                typeText(localSummary.summary)
+                return@launch
+            }
 
-        // Trigger ViewModel summary logic
-        viewModel.summarize(uri)
+            // Start loading UI
+            isLoading = true
+            binding.tvSummary.text = ""
+            binding.progressBar.visibility = View.VISIBLE
+            binding.progressBar.progress = 0
+
+            startAnalyzingAnimation()
+            startDotsAnimation()
+
+            // Timeout protection
+            handler.postDelayed(timeoutRunnable, 10000)
+
+            // Trigger API call
+            viewModel.summarize(uri)
+        }
     }
 
-    // Observes ViewModel state changes for summary and Q&A
+    // Observes summary and Q&A state changes from ViewModel
     private fun setupObservers() {
 
         viewModel.uiState.observe(this) { state ->
 
             when (state) {
 
-                // Summary success case
+                // Summary success
                 is SummaryViewModel.UiState.Success -> {
+
+                    val summaryText = state.summary
+
                     stopLoading()
                     binding.tvSummary.text = ""
-                    typeText(state.summary)
-                }
+                    typeText(summaryText)
 
-                // Summary error case
-                is SummaryViewModel.UiState.Error -> {
-                    stopLoading()
-
-                    binding.tvSummary.text = "Failed to generate summary\n(Check API or try again)"
-
-                    // Allow retry on click
-                    binding.tvSummary.setOnClickListener {
-                        startSummary()
+                    // Save summary locally
+                    lifecycleScope.launch {
+                        dao.insertSummary(
+                            SummaryEntity(
+                                pdfUri = selectedPdfUri.toString(),
+                                summary = summaryText
+                            )
+                        )
                     }
                 }
 
-                // Loading or idle state
-                else -> {
-                    // No action, loading animations continue
+                // Summary error
+                is SummaryViewModel.UiState.Error -> {
+                    stopLoading()
+                    binding.tvSummary.text = "Failed to generate summary\n(Check API)"
                 }
+
+                else -> {}
             }
         }
 
-        // Observe Q&A responses
+        // Q&A observer
         viewModel.qaState.observe(this) { state ->
+
             when (state) {
+
                 is QaState.Answer -> {
-                    stopThinking()
-                    typeTextAnswer(state.answer)
+
+                    val answerText = state.answer
+
+                    // Use stored question to avoid mismatch
+                    val questionText = lastQuestion
+
+                    // Add AI response to chat
+                    chatList.add(ChatItem(answerText, false))
+                    chatAdapter.notifyItemInserted(chatList.size - 1)
+
+                    if (chatList.isNotEmpty()) {
+                        binding.recyclerChat.scrollToPosition(chatList.size - 1)
+                    }
+
+                    // Save Q&A locally
+                    lifecycleScope.launch {
+                        dao.insertQa(
+                            QaEntity(
+                                pdfUri = selectedPdfUri.toString(),
+                                question = questionText,
+                                answer = answerText
+                            )
+                        )
+                    }
+
+                    // Clear input field
+                    binding.etQuestion.text?.clear()
                 }
 
                 is QaState.Error -> {
-                    binding.tvAnswer.text = "Error: ${state.message}"
+                    // Error handling can be added if needed
                 }
 
                 else -> {}
@@ -159,37 +233,33 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 
-    // Handles Ask button interaction for Q&A feature
+    // Handles user question input
     private fun setupAsk() {
         binding.btnAsk.setOnClickListener {
             val question = binding.etQuestion.text.toString()
 
             if (question.isBlank()) return@setOnClickListener
 
-            // Start "thinking" animation
-            startThinkingAnimation()
+            // Store last question for mapping
+            lastQuestion = question
 
+            // Add user message to chat
+            chatList.add(ChatItem(question, true))
+            chatAdapter.notifyItemInserted(chatList.size - 1)
+            binding.recyclerChat.smoothScrollToPosition(chatList.size - 1)
+
+            // Trigger API call
             selectedPdfUri?.let {
                 viewModel.askQuestion(it, question)
             }
         }
     }
 
-    // Stops loading animations and resets UI state
+    // Stops loading state and animations
     private fun stopLoading() {
         isLoading = false
-
-        // Remove all pending callbacks and animations
         handler.removeCallbacksAndMessages(null)
-
-        binding.progressBar.progress = 100
         binding.progressBar.visibility = View.GONE
-        binding.btnAsk.isEnabled = true
-    }
-
-    // Stops Q&A thinking animation
-    private fun stopThinking() {
-        handler.removeCallbacksAndMessages(null)
     }
 
     // Typing animation for summary text
@@ -207,50 +277,29 @@ class SummaryActivity : AppCompatActivity() {
         })
     }
 
-    // Typing animation for answer text
-    private fun typeTextAnswer(fullText: String) {
-        var index = 0
-
-        handler.post(object : Runnable {
-            override fun run() {
-                if (index <= fullText.length) {
-                    binding.tvAnswer.text = fullText.substring(0, index)
-                    index++
-                    handler.postDelayed(this, 10)
-                }
-            }
-        })
-    }
-
-    // Simulates progress bar movement during loading
+    // Simulates progress bar movement
     private fun simulateProgress() {
         var progress = 0
 
         handler.post(object : Runnable {
             override fun run() {
                 if (isLoading && progress < 95) {
-
                     progress += (1..4).random()
-
                     binding.progressBar.progress = progress
-
-                    handler.postDelayed(this, (150..300).random().toLong())
+                    handler.postDelayed(this, 200)
                 }
             }
         })
     }
 
-    // Displays rotating AI-style status messages
+    // Displays rotating loading messages
     private fun startAnalyzingAnimation() {
 
         val messages = listOf(
             "Analyzing document...",
-            "Extracting key insights...",
-            "Understanding context...",
-            "Scanning important sections...",
-            "Finding key points...",
-            "Generating summary...",
-            "Almost done..."
+            "Extracting insights...",
+            "Understanding content...",
+            "Generating summary..."
         )
 
         var index = 0
@@ -260,13 +309,13 @@ class SummaryActivity : AppCompatActivity() {
                 if (isLoading) {
                     binding.tvSummary.text = messages[index % messages.size]
                     index++
-                    handler.postDelayed(this, (800..1400).random().toLong())
+                    handler.postDelayed(this, 1000)
                 }
             }
         })
     }
 
-    // Adds animated dots to simulate ongoing processing
+    // Adds animated dots during loading
     private fun startDotsAnimation() {
 
         var dots = ""
@@ -274,35 +323,17 @@ class SummaryActivity : AppCompatActivity() {
         handler.post(object : Runnable {
             override fun run() {
                 if (isLoading) {
-
                     dots = if (dots.length >= 3) "" else dots + "."
-
                     val baseText = binding.tvSummary.text.toString()
                         .replace(Regex("\\.*$"), "")
-
                     binding.tvSummary.text = baseText + dots
-
                     handler.postDelayed(this, 400)
                 }
             }
         })
     }
 
-    // Displays "thinking" animation for Q&A responses
-    private fun startThinkingAnimation() {
-        val texts = listOf("Thinking.", "Thinking..", "Thinking...")
-        var index = 0
-
-        handler.post(object : Runnable {
-            override fun run() {
-                binding.tvAnswer.text = texts[index % texts.size]
-                index++
-                handler.postDelayed(this, 500)
-            }
-        })
-    }
-
-    // Cleanup handler callbacks to avoid memory leaks
+    // Cleanup handler to prevent memory leaks
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)

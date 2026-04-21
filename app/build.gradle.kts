@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    kotlin("kapt")
 }
 
 val localProperties = Properties()
@@ -37,6 +38,9 @@ android {
             )
         }
     }
+    kapt {
+        correctErrorTypes = true
+    }
     packaging {
         jniLibs {
             useLegacyPackaging = false
@@ -57,6 +61,15 @@ android {
 
 dependencies {
 
+    implementation("androidx.activity:activity-ktx:1.9.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
+    //room db
+        implementation("androidx.room:room-runtime:2.6.1")
+        kapt("androidx.room:room-compiler:2.6.1")
+        implementation("androidx.room:room-ktx:2.6.1")
+
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
   //  implementation("com.github.barteksc:android-pdf-viewer:2.8.2")
@@ -67,7 +80,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.constraintlayout
+    )
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
