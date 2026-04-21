@@ -21,17 +21,17 @@ class OnboardingActivity : AppCompatActivity() {
             OnboardingAdapter.OnboardingSlide(
                 "Decipher the\nComplex",
                 "Transform dense PDFs into clear,\nactionable insights in seconds.",
-                R.drawable.ob_slide_1
+                0
             ),
             OnboardingAdapter.OnboardingSlide(
                 "Intelligent\nConversations",
                 "Ask your documents anything. Our AI understands context, nuance, and detail.",
-                R.drawable.ob_slide_2
+                0
             ),
             OnboardingAdapter.OnboardingSlide(
                 "Total Clarity",
                 "Ready to experience the future of document intelligence? Let's get started.",
-                R.drawable.ob_slide_3
+                0
             )
         )
 
