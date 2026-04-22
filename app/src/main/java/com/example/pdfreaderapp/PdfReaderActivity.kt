@@ -56,6 +56,7 @@ class PdfReaderActivity : AppCompatActivity() {
 
     private fun loadPdfFromIntent() {
         val uriString = intent.getStringExtra("pdfUri")
+
         if (uriString.isNullOrEmpty()) {
             Toast.makeText(this, "Invalid PDF", Toast.LENGTH_SHORT).show()
             finish()
@@ -64,7 +65,12 @@ class PdfReaderActivity : AppCompatActivity() {
 
         val uri = Uri.parse(uriString)
         selectedPdfUri = uri
-        binding.topBar.title = getFileName(uri)
+
+        binding.topBar.title = try {
+            getFileName(uri)
+        }catch (e: Exception){
+            "PDF"
+        }
         loadPdf(uri)
     }
 
@@ -84,13 +90,19 @@ class PdfReaderActivity : AppCompatActivity() {
     }
 
     private fun getFileName(uri: Uri): String {
-        var name = "PDF"
-        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-            val index = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-            if (cursor.moveToFirst() && index != -1) {
-                name = cursor.getString(index)
+        return try {
+
+
+            var name = "PDF"
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (cursor.moveToFirst() && nameIndex != -1) {
+                    name = cursor.getString(nameIndex)
+                }
             }
+            name
+        }catch (e: Exception){
+            "PDF"
         }
-        return name
     }
-}
+}

@@ -21,7 +21,7 @@ interface PdfDao {
     @Insert
     suspend fun insertQa(qa : QaEntity)
 
-    @Query("SELECT * FROM qa_table WHERE pdfUri = :uri ")
+    @Query("SELECT * FROM qa_table WHERE pdfUri = :uri ORDER BY id DESC LIMIT 500 ")
     suspend fun getQaList(uri: String): List<QaEntity>
 
 }

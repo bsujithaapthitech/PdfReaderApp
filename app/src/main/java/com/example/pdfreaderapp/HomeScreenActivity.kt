@@ -54,6 +54,20 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private fun setupRecycler() {
         adapter = PdfAdapter(pdfList) { pdf ->
+            val uri = Uri.parse(pdf.uri)
+
+            if (!isUriAccessible(uri)) {
+                Toast.makeText(this, "PDF access lost. Please reselect.", Toast.LENGTH_LONG).show()
+
+                pdfList.remove(pdf)
+
+                adapter.notifyDataSetChanged()
+                savePdfList()
+                updateEmptyState()
+
+                return@PdfAdapter
+            }
+
             val intent = Intent(this, PdfReaderActivity::class.java)
             intent.putExtra("pdfUri", pdf.uri)
             startActivity(intent)
@@ -93,7 +107,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun openReaderScreen(uri: Uri) {
         val intent = Intent(this, PdfReaderActivity::class.java).apply {
             putExtra("pdfUri", uri.toString())
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         startActivity(intent)
     }
@@ -135,5 +149,13 @@ class HomeScreenActivity : AppCompatActivity() {
             }
         }
         return name
+    }
+    private fun isUriAccessible(uri: Uri): Boolean {
+        return try {
+            contentResolver.openInputStream(uri)?.close()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

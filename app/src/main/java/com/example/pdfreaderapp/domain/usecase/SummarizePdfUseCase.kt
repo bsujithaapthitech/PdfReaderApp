@@ -43,11 +43,12 @@ class SummarizePdfUseCase(
         waitSeconds: Int,
         onProgress: (Progress) -> Unit
     ) {
-        var remaining = waitSeconds
+        var remaining = minOf(waitSeconds,30)
         while (remaining > 0) {
             onProgress(Progress.StatusUpdate("⏳ Rate limited — auto-retrying in ${remaining}s..."))
-            delay(10_000L)
-            remaining -= 10
+            //delayfix
+            delay(1000L)
+            remaining -= 1
         }
     }
 

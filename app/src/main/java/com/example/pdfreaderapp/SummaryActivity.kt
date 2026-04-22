@@ -152,6 +152,7 @@ class SummaryActivity : AppCompatActivity() {
                 }
                 is QaState.Answer -> {
                     hideLoading()
+                    binding.btnAsk.isEnabled = true   //  re-enable
                     addAiMessage(state.answer)
                     saveQaLocally(lastQuestion, state.answer)
                     binding.etQuestion.text?.clear()
@@ -194,6 +195,8 @@ class SummaryActivity : AppCompatActivity() {
             val question = binding.etQuestion.text.toString()
             if (question.isBlank()) return@setOnClickListener
 
+            binding.btnAsk.isEnabled = false // prevent multiples clicks
+
             lastQuestion = question
             chatList.add(ChatItem(question, true))
             chatAdapter.notifyItemInserted(chatList.size - 1)
@@ -213,4 +216,4 @@ class SummaryActivity : AppCompatActivity() {
         }
     }
 }
-
+
