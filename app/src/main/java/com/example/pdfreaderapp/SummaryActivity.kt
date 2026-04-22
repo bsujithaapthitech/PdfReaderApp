@@ -26,7 +26,9 @@ import com.example.pdfreaderapp.domain.util.TextChunker
 import com.example.pdfreaderapp.model.ChatItem
 import com.example.pdfreaderapp.ui.viewmodel.SummaryViewModel
 import com.example.pdfreaderapp.ui.viewmodel.SummaryViewModelFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SummaryActivity : AppCompatActivity() {
 
@@ -84,29 +86,37 @@ class SummaryActivity : AppCompatActivity() {
     private fun loadInitialData() {
         val uri = selectedPdfUri ?: return
 
-        lifecycleScope.launch {
-            // Load saved Q&A
-            val qaList = dao.getQaList(uri.toString())
+        lifecycleScope.launch(Dispatchers.IO) {
 
-            // Check for cached summary
-            val cachedSummary = dao.getSummary(uri.toString())
+            try {
+                // Load saved Q&A
+                val qaList = dao.getQaList(uri.toString())
+                // Check for cached summary
+                val cachedSummary = dao.getSummary(uri.toString())
 
-            if (cachedSummary != null) {
-                binding.tvCacheLabel.visibility = View.VISIBLE
-                chatList.add(ChatItem(cachedSummary.summary, false))
-            }
+                withContext(Dispatchers.Main) {
 
-            qaList.forEach {
-                chatList.add(ChatItem(it.question, true))
-                chatList.add(ChatItem(it.answer, false))
-            }
+                    if (cachedSummary != null) {
+                        binding.tvCacheLabel.visibility = View.VISIBLE
+                        chatList.add(ChatItem(cachedSummary.summary, false))
+                    }
 
-            chatAdapter.notifyDataSetChanged()
-            scrollToBottom()
+                    val itemsToAdd = mutableListOf<ChatItem>()
+                    qaList.forEach {
+                        itemsToAdd.add(ChatItem(it.question, true))
+                        itemsToAdd.add(ChatItem(it.answer, false))
+                    }
+                    chatList.addAll(itemsToAdd)
+                    chatAdapter.notifyDataSetChanged()
+                    scrollToBottom()
 
-            // If no cache, start fresh summary
-            if (cachedSummary == null) {
-                viewModel.summarize(uri)
+                    if (cachedSummary == null) {
+                        viewModel.summarize(uri)
+
+                    }
+                }
+            }catch (e: Exception){
+                e.printStackTrace()
             }
         }
     }
@@ -159,6 +169,7 @@ class SummaryActivity : AppCompatActivity() {
                 }
                 is QaState.Error -> {
                     hideLoading()
+                    binding.btnAsk.isEnabled = true   //
                     addAiMessage("Error: ${state.message}")
                 }
                 else -> {}
@@ -172,17 +183,20 @@ class SummaryActivity : AppCompatActivity() {
         scrollToBottom()
     }
 
+
     private fun saveSummaryLocally(summaryText: String) {
-        lifecycleScope.launch {
-            dao.insertSummary(SummaryEntity(selectedPdfUri.toString(), summaryText))
+        lifecycleScope.launch(Dispatchers.IO) {
+            val uri = selectedPdfUri?.toString() ?: return@launch
+            dao.insertSummary(SummaryEntity(uri, summaryText))
         }
     }
 
     private fun saveQaLocally(question: String, answer: String) {
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val uri = selectedPdfUri?.toString() ?: return@launch
             dao.insertQa(
                 QaEntity(
-                    pdfUri = selectedPdfUri.toString(),
+                    pdfUri = uri,
                     question = question,
                     answer = answer
                 )
