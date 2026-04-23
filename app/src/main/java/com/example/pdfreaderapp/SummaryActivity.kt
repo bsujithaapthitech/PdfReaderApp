@@ -2,7 +2,9 @@ package com.example.pdfreaderapp
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -115,9 +117,17 @@ class SummaryActivity : AppCompatActivity() {
 
                     }
                 }
-            }catch (e: Exception){
-                e.printStackTrace()
+            }catch (e: Exception) {
+            Log.e("SummaryActivity", "Error loading initial data", e)
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@SummaryActivity,
+                    "Failed to load chat history",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
+        }
         }
     }
 
